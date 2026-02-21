@@ -1,17 +1,20 @@
-# echidnabit_website_flutter
+# Echidnabit Website (Flutter)
 
-Echidnabit Website
+Landing page for the Echidnabit mobile app business, built with Flutter web and deployed with GitHub Pages.
 
-## Getting Started
+## Local development
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run -d chrome
+```
 
-A few resources to get you started if this is your first Flutter project:
+## GitHub Pages deployment
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Deployment is handled by GitHub Actions using `.github/workflows/deploy.yml`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The workflow:
+1. Installs Flutter.
+2. Builds the web app.
+3. Adds a `404.html` SPA fallback for deep links like `/privacy-policy`.
+4. Uploads and deploys to GitHub Pages.

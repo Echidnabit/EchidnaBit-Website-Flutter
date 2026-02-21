@@ -1,122 +1,281 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
-  runApp(const MyApp());
+  usePathUrlStrategy();
+  runApp(const EchidnabitWebsiteApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class EchidnabitWebsiteApp extends StatelessWidget {
+  const EchidnabitWebsiteApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Echidnabit',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3454D1)),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      initialRoute: Uri.base.path,
+      onGenerateRoute: AppRouteFactory.generateRoute,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class AppRouteFactory {
+  static const String home = '/';
+  static const String privacyPolicy = '/privacy-policy';
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  static Route<dynamic> generateRoute(RouteSettings routeSettings) {
+    final routeName = _normalizedRoute(routeSettings.name);
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+    switch (routeName) {
+      case home:
+        return _pageRoute(const HomePage());
+      case privacyPolicy:
+        return _pageRoute(const PrivacyPolicyPage());
+      default:
+        return _pageRoute(const HomePage());
+    }
+  }
 
-  final String title;
+  static String _normalizedRoute(String? routeName) {
+    if (routeName == null || routeName.isEmpty) {
+      return home;
+    }
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+    final normalizedPath = Uri.parse(routeName).path;
+    if (normalizedPath.isEmpty) {
+      return home;
+    }
+
+    return normalizedPath;
+  }
+
+  static MaterialPageRoute<dynamic> _pageRoute(Widget page) {
+    return MaterialPageRoute<dynamic>(builder: (_) => page);
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  static const List<AppShowcase> appShowcases = [
+    AppShowcase(
+      name: 'Tessellate',
+      description:
+          'Tessellate lets artists split their pictures so creating repeatable tessellated art is quick and easy.',
+      iconData: Icons.grid_view_rounded,
+      accentColor: Color(0xFF4E79E6),
+    ),
+    AppShowcase(
+      name: 'Pitchi',
+      description:
+          'Pitchi is a music learning companion targeted at musical students who want extra pitch training support.',
+      iconData: Icons.music_note_rounded,
+      accentColor: Color(0xFFE66D4E),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    'Echidnabit',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  FilledButton.tonalIcon(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(AppRouteFactory.privacyPolicy);
+                    },
+                    icon: const Icon(Icons.privacy_tip_outlined),
+                    label: const Text('Privacy Policy'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: const _HeroSection(),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            sliver: SliverList.builder(
+              itemCount: appShowcases.length,
+              itemBuilder: (context, index) {
+                final app = appShowcases[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: AppShowcaseCard(app: app),
+                );
+              },
+            ),
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+    );
+  }
+}
+
+class _HeroSection extends StatelessWidget {
+  const _HeroSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('You have pushed the button this many times:'),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'Mobile app studio',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Building practical tools for creators and students.',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Echidnabit creates focused mobile apps that help people learn, make, and share better work.',
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () async {
+                final contactUri = Uri(
+                  scheme: 'mailto',
+                  path: 'Echidnabit@gmail.com',
+                  queryParameters: {'subject': 'Hello from echidnabit.com'},
+                );
+                await launchUrl(contactUri);
+              },
+              icon: const Icon(Icons.email_outlined),
+              label: const Text('Contact me'),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+}
+
+class AppShowcaseCard extends StatelessWidget {
+  const AppShowcaseCard({super.key, required this.app});
+
+  final AppShowcase app;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        leading: CircleAvatar(
+          backgroundColor: app.accentColor.withOpacity(0.14),
+          child: Icon(app.iconData, color: app.accentColor),
+        ),
+        title: Text(
+          app.name,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(app.description),
+        ),
       ),
     );
   }
+}
+
+class PrivacyPolicyPage extends StatelessWidget {
+  const PrivacyPolicyPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Privacy Policy'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: const [
+          Text(
+            'Echidnabit Privacy Policy',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'This basic privacy policy explains how Echidnabit handles user data in our apps and on this website.',
+          ),
+          SizedBox(height: 16),
+          Text('1. Data collection', style: TextStyle(fontWeight: FontWeight.w700)),
+          SizedBox(height: 8),
+          Text(
+            'Echidnabit aims to collect as little personal data as possible. If an app needs account, analytics, or crash reporting data, only the minimum required data is collected.',
+          ),
+          SizedBox(height: 16),
+          Text('2. Data use', style: TextStyle(fontWeight: FontWeight.w700)),
+          SizedBox(height: 8),
+          Text(
+            'Any data collected is used to operate, maintain, and improve app features. We do not sell personal data.',
+          ),
+          SizedBox(height: 16),
+          Text('3. Third-party services', style: TextStyle(fontWeight: FontWeight.w700)),
+          SizedBox(height: 8),
+          Text(
+            'Some apps may rely on trusted third-party services such as app stores, analytics, or cloud providers. Their privacy terms apply to data handled by those services.',
+          ),
+          SizedBox(height: 16),
+          Text('4. Contact', style: TextStyle(fontWeight: FontWeight.w700)),
+          SizedBox(height: 8),
+          Text('Questions can be sent to Echidnabit@gmail.com.'),
+          SizedBox(height: 24),
+          Text(
+            'Last updated: 2026-02-21',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AppShowcase {
+  const AppShowcase({
+    required this.name,
+    required this.description,
+    required this.iconData,
+    required this.accentColor,
+  });
+
+  final String name;
+  final String description;
+  final IconData iconData;
+  final Color accentColor;
 }
