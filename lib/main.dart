@@ -248,7 +248,7 @@ class _HeroSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Building practical tools for creators and students.',
+              'Contact me',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
