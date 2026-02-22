@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -66,14 +68,15 @@ class HomePage extends StatelessWidget {
       name: 'Tessellate',
       description:
           'Tessellate lets artists split their pictures so creating repeatable tessellated art is quick and easy.',
-      iconData: Icons.grid_view_rounded,
+      iconAsset: 'assets/icons/tessellate.png',
       accentColor: Color(0xFF4E79E6),
+      appStoreUrl: 'https://apps.apple.com/us/app/tessellate/id6473245834',
     ),
     AppShowcase(
       name: 'Pitchi',
       description:
           'Pitchi is a music learning companion targeted at musical students who want extra pitch training support.',
-      iconData: Icons.music_note_rounded,
+      iconAsset: 'assets/icons/pitchi.png',
       accentColor: Color(0xFFE66D4E),
     ),
   ];
@@ -81,54 +84,146 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    'Echidnabit',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  FilledButton.tonalIcon(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(AppRouteFactory.privacyPolicy);
-                    },
-                    icon: const Icon(Icons.privacy_tip_outlined),
-                    label: const Text('Privacy Policy'),
-                  ),
-                ],
+      body: SelectionArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 520;
+                    final titleBlock = Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Echidnabit',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        LayoutBuilder(
+                          builder: (context, logoConstraints) {
+                            final logoTarget = (logoConstraints.maxWidth * 0.32)
+                                .clamp(88.0, 140.0)
+                                .toDouble();
+                            return Image.asset(
+                              'assets/logo.png',
+                              height: logoTarget,
+                              fit: BoxFit.contain,
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                    final privacyButton = FilledButton.tonalIcon(
+                      onPressed: () {
+                        Navigator.of(context)
+                            .pushNamed(AppRouteFactory.privacyPolicy);
+                      },
+                      icon: const Icon(Icons.privacy_tip_outlined),
+                      label: const Text('Privacy Policy'),
+                    );
+
+                    if (isNarrow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          titleBlock,
+                          const SizedBox(height: 12),
+                          privacyButton,
+                        ],
+                      );
+                    }
+
+                    return ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 96),
+                      child: Stack(
+                        alignment: Alignment.topCenter,
+                        children: [
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: titleBlock,
+                          ),
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: privacyButton,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: const _HeroSection(),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: const _HeroSection(),
+              ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-            sliver: SliverList.builder(
-              itemCount: appShowcases.length,
-              itemBuilder: (context, index) {
-                final app = appShowcases[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: AppShowcaseCard(app: app),
-                );
-              },
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: Text(
+                  'Apps',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
             ),
-          ),
-        ],
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              sliver: SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final useTwoColumns = constraints.crossAxisExtent >= 720;
+                  if (!useTwoColumns) {
+                    return SliverList.builder(
+                      itemCount: appShowcases.length,
+                      itemBuilder: (context, index) {
+                        final app = appShowcases[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: AppShowcaseCard(
+                            app: app,
+                            isCompact: constraints.crossAxisExtent < 520,
+                          ),
+                        );
+                      },
+                    );
+                  }
+
+                  final mainAxisExtent =
+                      constraints.crossAxisExtent >= 980 ? 440.0 : 460.0;
+                  return SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      mainAxisExtent: mainAxisExtent,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final app = appShowcases[index];
+                        return AppShowcaseCard(
+                          app: app,
+                          isCompact: false,
+                        );
+                      },
+                      childCount: appShowcases.length,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -160,20 +255,20 @@ class _HeroSection extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const Text(
-              'Echidnabit creates focused mobile apps that help people learn, make, and share better work.',
+              'Contact me with any bugs, feature requests, or suggestions.',
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: () async {
                 final contactUri = Uri(
                   scheme: 'mailto',
-                  path: 'Echidnabit@gmail.com',
+                  path: 'echidnabit@gmail.com',
                   queryParameters: {'subject': 'Hello from echidnabit.com'},
                 );
                 await launchUrl(contactUri);
               },
               icon: const Icon(Icons.email_outlined),
-              label: const Text('Contact me'),
+              label: const Text('echidnabit@gmail.com'),
             ),
           ],
         ),
@@ -183,28 +278,83 @@ class _HeroSection extends StatelessWidget {
 }
 
 class AppShowcaseCard extends StatelessWidget {
-  const AppShowcaseCard({super.key, required this.app});
+  const AppShowcaseCard({super.key, required this.app, required this.isCompact});
 
   final AppShowcase app;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
+    final appStoreUrl = app.appStoreUrl;
+    final iconFillRatio = isCompact ? 0.72 : 0.8;
     return Card(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        leading: CircleAvatar(
-          backgroundColor: app.accentColor.withValues(alpha: 0.14),
-          child: Icon(app.iconData, color: app.accentColor),
-        ),
-        title: Text(
-          app.name,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(app.description),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final availableWidth = constraints.maxWidth;
+                final reservedHeight =
+                    appStoreUrl == null ? 128.0 : 168.0;
+                final maxSizeByHeight = constraints.hasBoundedHeight
+                    ? math.max(0.0, constraints.maxHeight - reservedHeight)
+                    : 240.0;
+                final targetSize = math.min(
+                  availableWidth * iconFillRatio,
+                  maxSizeByHeight,
+                ).clamp(120.0, 240.0);
+                final iconSize = targetSize * 0.88;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: SizedBox(
+                        width: targetSize,
+                        height: targetSize,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: app.accentColor.withValues(alpha: 0.12),
+                            borderRadius:
+                                BorderRadius.circular(targetSize * 0.24),
+                          ),
+                          child: Center(
+                            child: Image.asset(
+                              app.iconAsset,
+                              width: iconSize,
+                              height: iconSize,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      app.name,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(app.description),
+                    if (appStoreUrl != null) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          await launchUrl(Uri.parse(appStoreUrl));
+                        },
+                        icon: const Icon(Icons.open_in_new),
+                        label: const Text('Download for iPhone'),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -268,12 +418,14 @@ class AppShowcase {
   const AppShowcase({
     required this.name,
     required this.description,
-    required this.iconData,
+    required this.iconAsset,
     required this.accentColor,
+    this.appStoreUrl,
   });
 
   final String name;
   final String description;
-  final IconData iconData;
+  final String iconAsset;
   final Color accentColor;
+  final String? appStoreUrl;
 }
