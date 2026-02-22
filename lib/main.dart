@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() {
-  usePathUrlStrategy();
   runApp(const EchidnabitWebsiteApp());
 }
 
@@ -195,7 +193,7 @@ class AppShowcaseCard extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         leading: CircleAvatar(
-          backgroundColor: app.accentColor.withOpacity(0.14),
+          backgroundColor: app.accentColor.withValues(alpha: 0.14),
           child: Icon(app.iconData, color: app.accentColor),
         ),
         title: Text(
